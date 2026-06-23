@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A futuristic 3D website with immersive graphics, waterfall navigation, and seamless scroll-driven camera movement.">
+    <title>Nexus - Futuristic 3D Experience</title>
+    <style>
+        /* ============================================
+           FUTURISTIC 3D WEBSITE - MASTER STYLESHEET
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #00ff88;
+        }
+
+        /* ============================================
+           CANVAS & 3D VIEW
+           ============================================ */
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* ============================================
+           HUD OVERLAY SYSTEM
+           ============================================ */
+
+        #hud-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-panel {
+            position: fixed;
+            pointer-events: auto;
+            backdrop-filter: blur(12px);
+            background: rgba(10, 25, 47, 0.6);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 24px;
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: 
+                0 0 40px rgba(0, 255, 136, 0.15),
+                inset 0 0 20px rgba(255, 255, 255, 0.05);
+            animation: slideIn 0.8s ease-out;
+            max-width: 500px;
+        }
+
+        .hud-panel h2 {
+            font-size: 24px;
+            color: #00ffff;
+            margin-bottom: 12px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .hud-panel h3 {
+            font-size: 16px;
+            color: #00ff88;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .hud-panel p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+        }
+
+        .hud-panel ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .hud-panel li {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .hud-panel li:before {
+            content: "▹";
+            position: absolute;
+            left: 0;
+            color: #00ff88;
+        }
+
+        .hud-panel a {
+            color: #00ffff;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .hud-panel a:hover {
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+
+        /* Panel Positioning */
+        .hud-panel.top-left {
+            top: 40px;
+            left: 40px;
+        }
+
+        .hud-panel.top-right {
+            top: 40px;
+            right: 40px;
+        }
+
+        .hud-panel.center {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .hud-panel.bottom-left {
+            bottom: 40px;
+            left: 40px;
+        }
+
+        .hud-panel.bottom-right {
+            bottom: 40px;
+            right: 40px;
+        }
+
+        /* ============================================
+           SCROLL PROGRESS INDICATOR
+           ============================================ */
+
+        #scroll-progress {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 200px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 2px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #scroll-progress-bar {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to bottom, #00ffff, #00ff88);
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+            transition: height 0.1s linear;
+        }
+
+        /* Mobile: Move progress to bottom */
+        @media (max-width: 768px) {
+            #scroll-progress {
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%);
+                top: auto;
+                bottom: 20px;
+                width: 200px;
+                height: 3px;
+            }
+        }
+
+        /* ============================================
+           DEBUG INFO PANEL
+           ============================================ */
+
+        #debug-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #00ff88;
+            padding: 10px 15px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            z-index: 1000;
+            line-height: 1.4;
+            display: none;
+            max-width: 300px;
+        }
+
+        #debug-info.active {
+            display: block;
+        }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 40px rgba(0, 255, 136, 0.8);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        /* ============================================
+           MOBILE RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 1024px) {
+            .hud-panel {
+                padding: 16px;
+                font-size: 13px;
+                max-width: 400px;
+            }
+            
+            .hud-panel h2 {
+                font-size: 20px;
+            }
+            
+            .hud-panel.top-left,
+            .hud-panel.top-right,
+            .hud-panel.bottom-left,
+            .hud-panel.bottom-right {
+                margin: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hud-panel {
+                padding: 12px;
+                font-size: 12px;
+                max-width: 280px;
+                margin: 10px;
+            }
+            
+            .hud-panel h2 {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+            
+            .hud-panel h3 {
+                font-size: 14px;
+            }
+            
+            .hud-panel.top-left {
+                top: 10px;
+                left: 10px;
+            }
+            
+            .hud-panel.top-right {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .hud-panel.bottom-left {
+                bottom: 10px;
+                left: 10px;
+            }
+            
+            .hud-panel.bottom-right {
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hud-panel {
+                padding: 10px;
+                font-size: 11px;
+                max-width: 240px;
+            }
+            
+            .hud-panel h2 {
+                font-size: 16px;
+            }
+            
+            .hud-panel h3 {
+                font-size: 12px;
+            }
+        }
+
+        /* ============================================
+           SCROLLBAR STYLING
+           ============================================ */
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 136, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main 3D Canvas Container -->
+    <canvas id="canvas"></canvas>
+    
+    <!-- HUD Overlay for Content Panels -->
+    <div id="hud-container"></div>
+    
+    <!-- Scroll Progress Indicator -->
+    <div id="scroll-progress">
+        <div id="scroll-progress-bar"></div>
+    </div>
+    
+    <!-- Debug Info (Press D to toggle) -->
+    <div id="debug-info"></div>
+    
+    <!-- CDN Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FXAAShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Main Application Script -->
+    <script>
+/**
+ * ============================================
+ * NEXUS - FUTURISTIC 3D WEBSITE
+ * ============================================
+ * A premium sci-fi digital experience with:
+ * - Scroll-driven waterfall navigation
+ * - Advanced 3D graphics and effects
+ * - Immersive environmental animations
+ * - Interactive holographic elements
+ * - Optimized performance for mobile
+ */
+
+// ============================================
+// GLOBAL STATE & CONFIGURATION
+// ============================================
+
+const CONFIG = {
+    // Scene configuration
+    scene: {
+        worldSize: 10000,
+        fogNear: 100,
+        fogFar: 8000,
+        backgroundColor: 0x000a1a,
+    },
+    // Camera configuration
+    camera: {
+        fov: 75,
+        aspect: window.innerWidth / window.innerHeight,
+        near: 0.1,
+        far: 20000,
+        startZ: 200,
+        scrollSensitivity: 1.2,
+    },
+    // Performance configuration
+    performance: {
+        targetFPS: 60,
+        enablePostProcessing: true,
+        particleCount: Math.floor(window.innerWidth / 4),
+        maxDrawCalls: 1000,
+    },
+    // Lighting configuration
+    lighting: {
+        ambientIntensity: 0.6,
+        sunIntensity: 1.2,
+        bloomThreshold: 0.8,
+        bloomStrength: 2.5,
+        bloomRadius: 1.0,
+    },
+};
+
+// Global state
+const state = {
+    scrollProgress: 0,
+    maxScroll: 5000,
+    isMouseDown: false,
+    mouseX: 0,
+    mouseY: 0,
+    deltaTime: 0,
+    frameCount: 0,
+    fps: 60,
+    mobile: window.innerWidth < 768,
+    touchActive: false,
+};
+
+// Three.js objects
+let scene, camera, renderer, composer;
+let bloomPass, fxaaPass;
+let particles = [];
+let floatingObjects = [];
+let lightWaterfalls = [];
+let hudPanels = [];
+
+// Performance tracking
+let lastFrameTime = Date.now();
+let frameTimeAccumulator = 0;
+let frameCounter = 0;
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+function initScene() {
+    // Create scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(CONFIG.scene.backgroundColor);
+    scene.fog = new THREE.Fog(CONFIG.scene.backgroundColor, CONFIG.scene.fogNear, CONFIG.scene.fogFar);
+
+    // Create camera
+    camera = new THREE.PerspectiveCamera(
+        CONFIG.camera.fov,
+        CONFIG.camera.aspect,
+        CONFIG.camera.near,
+        CONFIG.camera.far
+    );
+    camera.position.set(0, 100, CONFIG.camera.startZ);
+    camera.lookAt(0, 0, -500);
+
+    // Create renderer
+    const canvas = document.getElementById('canvas');
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.8;
+
+    // Setup post-processing
+    setupPostProcessing();
+
+    // Setup lighting
+    setupLighting();
+
+    // Create environment
+    createEnvironment();
+
+    // Create HUD panels
+    createHUDPanels();
+
+    // Setup event listeners
+    setupEventListeners();
+}
+
+function setupPostProcessing() {
+    const renderPass = new THREE.RenderPass(scene, camera);
+    
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(renderPass);
+
+    // Bloom effect
+    bloomPass = new THREE.UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        CONFIG.lighting.bloomStrength,
+        CONFIG.lighting.bloomRadius,
+        CONFIG.lighting.bloomThreshold
+    );
+    composer.addPass(bloomPass);
+
+    // FXAA anti-aliasing
+    const fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
+    fxaaPass.uniforms['resolution'].value.set(
+        1 / window.innerWidth,
+        1 / window.innerHeight
+    );
+    composer.addPass(fxaaPass);
+}
+
+function setupLighting() {
+    // Ambient light for general illumination
+    const ambientLight = new THREE.AmbientLight(0x4488ff, CONFIG.lighting.ambientIntensity);
+    scene.add(ambientLight);
+
+    // Main directional light
+    const sunLight = new THREE.DirectionalLight(0xffffff, CONFIG.lighting.sunIntensity);
+    sunLight.position.set(500, 1000, 500);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.left = -2000;
+    sunLight.shadow.camera.right = 2000;
+    sunLight.shadow.camera.top = 2000;
+    sunLight.shadow.camera.bottom = -2000;
+    sunLight.shadow.camera.far = 4000;
+    scene.add(sunLight);
+
+    // Blue accent light
+    const accentLight = new THREE.PointLight(0x00ffff, 0.5, 3000);
+    accentLight.position.set(-1000, 500, -1000);
+    scene.add(accentLight);
+
+    // Green accent light
+    const greenLight = new THREE.PointLight(0x00ff88, 0.4, 2500);
+    greenLight.position.set(1000, -500, 1000);
+    scene.add(greenLight);
+}
+
+// ============================================
+// ENVIRONMENT CREATION
+// ============================================
+
+function createEnvironment() {
+    // Create floating islands
+    createFloatingIslands();
+
+    // Create light waterfalls
+    createLightWaterfalls();
+
+    // Create holographic structures
+    createHolographicStructures();
+
+    // Create particle systems
+    createParticleSystems();
+
+    // Create atmospheric effects
+    createAtmosphericEffects();
+}
+
+function createFloatingIslands() {
+    const islandCount = 15;
+    const islandSpacing = 600;
+
+    for (let i = 0; i < islandCount; i++) {
+        const island = createIsland(
+            Math.random() * 2000 - 1000,
+            -i * islandSpacing,
+            Math.random() * 2000 - 1000,
+            Math.random() * 200 + 150
+        );
+        scene.add(island);
+        floatingObjects.push({ mesh: island, rotation: Math.random() * 0.0005 });
+    }
+}
+
+function createIsland(x, y, z, size) {
+    const group = new THREE.Group();
+    group.position.set(x, y, z);
+
+    // Main island geometry - irregular shape
+    const geometry = new THREE.IcosahedronGeometry(size, 4);
+    
+    // Create custom material with glow
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x1a4d7a,
+        metalness: 0.6,
+        roughness: 0.4,
+        emissive: 0x0033ff,
+        emissiveIntensity: 0.3,
+    });
+
+    const island = new THREE.Mesh(geometry, material);
+    island.castShadow = true;
+    island.receiveShadow = true;
+    group.add(island);
+
+    // Add floating orbs around island
+    for (let i = 0; i < 3; i++) {
+        const orb = createFloatingOrb(size * 0.3);
+        const angle = (i / 3) * Math.PI * 2;
+        orb.position.set(
+            Math.cos(angle) * size * 1.5,
+            Math.sin(angle) * size * 0.8,
+            Math.sin(angle * 0.5) * size * 1.2
+        );
+        group.add(orb);
+    }
+
+    // Add glow ring
+    const ringGeometry = new THREE.TorusGeometry(size * 1.3, size * 0.2, 32, 32);
+    const ringMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00ffff,
+        metalness: 0.8,
+        roughness: 0.2,
+        emissive: 0x00ffff,
+        emissiveIntensity: 0.6,
+    });
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    ring.rotation.x = Math.random() * Math.PI;
+    ring.position.y = -size * 0.5;
+    ring.castShadow = true;
+    group.add(ring);
+
+    return group;
+}
+
+function createFloatingOrb(size) {
+    const geometry = new THREE.SphereGeometry(size, 32, 32);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x00ff88,
+        metalness: 1.0,
+        roughness: 0.1,
+        emissive: 0x00ff88,
+        emissiveIntensity: 0.8,
+    });
+    const orb = new THREE.Mesh(geometry, material);
+    orb.castShadow = true;
+    orb.receiveShadow = true;
+    return orb;
+}
+
+function createLightWaterfalls() {
+    const waterfallCount = 8;
+
+    for (let i = 0; i < waterfallCount; i++) {
+        const angle = (i / waterfallCount) * Math.PI * 2;
+        const radius = 1500;
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        
+        const waterfall = createWaterfall(x, -300, z);
+        scene.add(waterfall);
+        lightWaterfalls.push({ mesh: waterfall, angle: angle });
+    }
+}
+
+function createWaterfall(x, y, z) {
+    const group = new THREE.Group();
+    group.position.set(x, y, z);
+
+    // Create tube geometry for waterfall
+    const tubeGeometry = new THREE.CylinderGeometry(80, 60, 1200, 32);
+    const tubeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00ffff,
+        metalness: 0.7,
+        roughness: 0.3,
+        emissive: 0x00ffff,
+        emissiveIntensity: 0.7,
+        transparent: true,
+        opacity: 0.6,
+    });
+    const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+    tube.position.y = -600;
+    tube.castShadow = true;
+    group.add(tube);
+
+    // Add flowing particle lines
+    for (let i = 0; i < 5; i++) {
+        const lineGeometry = new THREE.BufferGeometry();
+        const positions = [];
+        const count = 50;
+        for (let j = 0; j < count; j++) {
+            const angle = (i / 5) * Math.PI * 2;
+            const offset = 70;
+            positions.push(
+                Math.cos(angle) * offset,
+                -j * 20,
+                Math.sin(angle) * offset
+            );
+        }
+        lineGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+        
+        const lineMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ff88,
+            linewidth: 2,
+            emissive: 0x00ff88,
+        });
+        const line = new THREE.Line(lineGeometry, lineMaterial);
+        group.add(line);
+    }
+
+    return group;
+}
+
+function createHolographicStructures() {
+    const structureCount = 10;
+    const spacing = 500;
+
+    for (let i = 0; i < structureCount; i++) {
+        const structure = createHolographicDome(
+            Math.random() * 1500 - 750,
+            -i * spacing - 500,
+            Math.random() * 1500 - 750,
+            Math.random() * 100 + 80
+        );
+        scene.add(structure);
+        floatingObjects.push({ mesh: structure, rotation: Math.random() * 0.001 });
+    }
+}
+
+function createHolographicDome(x, y, z, size) {
+    const group = new THREE.Group();
+    group.position.set(x, y, z);
+
+    // Main dome
+    const domeGeometry = new THREE.IcosahedronGeometry(size, 3);
+    const domeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1a7a7a,
+        metalness: 0.9,
+        roughness: 0.1,
+        emissive: 0x00ffff,
+        emissiveIntensity: 0.5,
+        wireframe: false,
+        transparent: true,
+        opacity: 0.4,
+    });
+    const dome = new THREE.Mesh(domeGeometry, domeMaterial);
+    dome.castShadow = true;
+    group.add(dome);
+
+    // Wireframe overlay
+    const wireframeGeometry = new THREE.IcosahedronGeometry(size * 1.05, 3);
+    const wireframeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00ff88,
+        wireframe: true,
+        emissive: 0x00ff88,
+        emissiveIntensity: 0.3,
+    });
+    const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+    group.add(wireframe);
+
+    // Rotating ring
+    const ringGeometry = new THREE.TorusGeometry(size * 1.2, size * 0.1, 32, 32);
+    const ringMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00ffff,
+        metalness: 0.8,
+        roughness: 0.2,
+        emissive: 0x00ffff,
+        emissiveIntensity: 0.6,
+    });
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    ring.rotation.z = Math.random() * Math.PI;
+    group.add(ring);
+
+    return group;
+}
+
+function createParticleSystems() {
+    const particleCount = CONFIG.performance.particleCount;
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+
+    const color = new THREE.Color();
+
+    for (let i = 0; i < particleCount; i++) {
+        const x = (Math.random() - 0.5) * CONFIG.scene.worldSize;
+        const y = (Math.random() - 0.5) * CONFIG.scene.worldSize;
+        const z = (Math.random() - 0.5) * CONFIG.scene.worldSize;
+
+        positions.push(x, y, z);
+
+        // Cyan to green gradient
+        const hue = Math.random() * 0.2 + 0.35; // Cyan-green range
+        color.setHSL(hue, 1, 0.6);
+        colors.push(color.r, color.g, color.b);
+
+        sizes.push(Math.random() * 4 + 2);
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(new Float32Array(sizes), 1));
+
+    const material = new THREE.PointsMaterial({
+        size: 4,
+        vertexColors: true,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.6,
+    });
+
+    const particlesMesh = new THREE.Points(geometry, material);
+    scene.add(particlesMesh);
+
+    // Store particle data
+    const positionAttribute = geometry.getAttribute('position');
+    const velocities = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount * 3; i++) {
+        velocities[i] = (Math.random() - 0.5) * 0.5;
+    }
+
+    return { mesh: particlesMesh, velocities: velocities, positionAttribute: positionAttribute };
+}
+
+function createAtmosphericEffects() {
+    // Create a subtle grid texture for depth
+    const gridGeometry = new THREE.PlaneGeometry(CONFIG.scene.worldSize, CONFIG.scene.worldSize);
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.strokeStyle = 'rgba(0, 255, 136, 0.1)';
+    ctx.lineWidth = 1;
+    
+    const gridSize = 32;
+    for (let i = 0; i <= 512; i += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, 512);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(512, i);
+        ctx.stroke();
+    }
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.repeat.set(10, 10);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    
+    const gridMaterial = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.15,
+    });
+    
+    const grid = new THREE.Mesh(gridGeometry, gridMaterial);
+    grid.position.z = -3000;
+    scene.add(grid);
+}
+
+// ============================================
+// HUD PANEL SYSTEM
+// ============================================
+
+function createHUDPanels() {
+    const panels = [
+        {
+            position: 'top-left',
+            title: 'NEXUS OPERATING SYSTEM',
+            content: `
+                <p>Welcome to the Nexus Digital Universe. This is a state-of-the-art 3D environment built with cutting-edge web technologies.</p>
+                <h3>SYSTEM STATUS</h3>
+                <ul>
+                    <li>Neural Network: ACTIVE</li>
+                    <li>Quantum Processors: OPTIMIZED</li>
+                    <li>Energy Matrices: STABLE</li>
+                </ul>
+            `,
+            timeout: 0,
+        },
+        {
+            position: 'top-right',
+            title: 'NAVIGATION',
+            content: `
+                <p>Scroll to navigate through layers of the digital realm.</p>
+                <h3>CONTROLS</h3>
+                <ul>
+                    <li>Scroll/Wheel: Move Down</li>
+                    <li>Mouse: Look Around</li>
+                    <li>Touch: Immersive Mode</li>
+                </ul>
+            `,
+            timeout: 2000,
+        },
+        {
+            position: 'bottom-left',
+            title: 'ENVIRONMENT METRICS',
+            content: `
+                <p><strong>Current Depth:</strong> <span id="depth-meter">0 M</span></p>
+                <p><strong>Structures Detected:</strong> <span id="structure-count">Loading...</span></p>
+                <p><strong>Performance:</strong> <span id="fps-meter">60 FPS</span></p>
+            `,
+            timeout: 1000,
+        },
+        {
+            position: 'bottom-right',
+            title: 'QUANTUM GATEWAY',
+            content: `
+                <h3>INTERDIMENSIONAL LINKS</h3>
+                <ul>
+                    <li><a href="#" onclick="return false">Repository Access</a></li>
+                    <li><a href="#" onclick="return false">Documentation Hub</a></li>
+                    <li><a href="#" onclick="return false">Source Code</a></li>
+                </ul>
+            `,
+            timeout: 3000,
+        },
+    ];
+
+    panels.forEach(panelConfig => {
+        setTimeout(() => {
+            createHUDPanel(panelConfig);
+        }, panelConfig.timeout);
+    });
+}
+
+function createHUDPanel(config) {
+    const panelHTML = `
+        <div class="hud-panel ${config.position}">
+            <h2>${config.title}</h2>
+            <div>${config.content}</div>
+        </div>
+    `;
+
+    const hudContainer = document.getElementById('hud-container');
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = panelHTML;
+    hudContainer.appendChild(tempDiv.firstElementChild);
+
+    hudPanels.push({
+        title: config.title,
+        element: tempDiv.firstElementChild,
+        position: config.position,
+    });
+}
+
+// ============================================
+// ANIMATION & UPDATE LOOP
+// ============================================
+
+function updateCamera() {
+    // Scroll-driven camera movement
+    const scrollPercent = state.scrollProgress / state.maxScroll;
+    const targetZ = CONFIG.camera.startZ - scrollPercent * 3000;
+    const targetY = 100 - scrollPercent * 500;
+
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.05);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.05);
+
+    // Mouse input for rotation (subtle)
+    const rotationStrength = 0.0008;
+    camera.rotation.x = THREE.MathUtils.lerp(
+        camera.rotation.x,
+        (state.mouseY - window.innerHeight / 2) * rotationStrength,
+        0.1
+    );
+    camera.rotation.z = THREE.MathUtils.lerp(
+        camera.rotation.z,
+        (state.mouseX - window.innerWidth / 2) * rotationStrength,
+        0.1
+    );
+
+    camera.lookAt(0, 0, camera.position.z - 500);
+}
+
+function updateFloatingObjects() {
+    floatingObjects.forEach((obj, index) => {
+        if (obj.mesh) {
+            // Rotation
+            obj.mesh.rotation.x += obj.rotation * 0.5;
+            obj.mesh.rotation.y += obj.rotation * 1.5;
+            obj.mesh.rotation.z += obj.rotation * 0.8;
+
+            // Bobbing motion
+            const time = Date.now() * 0.0001;
+            obj.mesh.position.y += Math.sin(time + index) * 0.3;
+        }
+    });
+}
+
+function updateParticles(particles) {
+    if (!particles) return;
+
+    const positionAttribute = particles.positionAttribute;
+    const positions = positionAttribute.array;
+    const velocities = particles.velocities;
+    const scrollSpeed = state.scrollProgress * 0.1;
+
+    for (let i = 0; i < positions.length; i += 3) {
+        // Apply velocity
+        positions[i] += velocities[i];
+        positions[i + 1] += velocities[i + 1] - 0.01; // Gravity effect
+        positions[i + 2] += velocities[i + 2] + scrollSpeed;
+
+        // Wrap around
+        if (Math.abs(positions[i]) > CONFIG.scene.worldSize / 2) {
+            positions[i] = -positions[i];
+        }
+        if (positions[i + 1] < -CONFIG.scene.worldSize / 2) {
+            positions[i + 1] = CONFIG.scene.worldSize / 2;
+        }
+        if (Math.abs(positions[i + 2]) > CONFIG.scene.worldSize) {
+            positions[i + 2] = -CONFIG.scene.worldSize;
+        }
+    }
+
+    positionAttribute.needsUpdate = true;
+}
+
+function updateMetrics() {
+    // Update FPS
+    const now = Date.now();
+    const deltaTime = now - lastFrameTime;
+    lastFrameTime = now;
+
+    frameTimeAccumulator += deltaTime;
+    frameCounter++;
+
+    if (frameTimeAccumulator >= 1000) {
+        state.fps = frameCounter;
+        frameCounter = 0;
+        frameTimeAccumulator = 0;
+    }
+
+    // Update HUD metrics
+    const depthMeter = document.getElementById('depth-meter');
+    const fpsMeter = document.getElementById('fps-meter');
+    const structureCount = document.getElementById('structure-count');
+
+    if (depthMeter) {
+        depthMeter.textContent = Math.floor(state.scrollProgress) + ' M';
+    }
+    if (fpsMeter) {
+        fpsMeter.textContent = state.fps + ' FPS';
+    }
+    if (structureCount) {
+        structureCount.textContent = floatingObjects.length;
+    }
+
+    // Update scroll progress bar
+    const scrollBar = document.getElementById('scroll-progress-bar');
+    if (scrollBar) {
+        const progress = (state.scrollProgress / state.maxScroll) * 100;
+        scrollBar.style.height = Math.min(progress, 100) + '%';
+    }
+}
+
+function updateDebugInfo() {
+    const debugInfo = document.getElementById('debug-info');
+    if (debugInfo.classList.contains('active')) {
+        debugInfo.innerHTML = `
+            FPS: ${state.fps}<br>
+            Scroll: ${Math.floor(state.scrollProgress)}/${state.maxScroll}<br>
+            Camera: (${camera.position.x.toFixed(0)}, ${camera.position.y.toFixed(0)}, ${camera.position.z.toFixed(0)})<br>
+            Objects: ${scene.children.length}<br>
+            Particles: ${CONFIG.performance.particleCount}
+        `;
+    }
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Update systems
+    updateCamera();
+    updateFloatingObjects();
+    updateMetrics();
+    updateDebugInfo();
+
+    // Update bloom effect based on scroll
+    const bloomIntensity = 1.5 + (state.scrollProgress / state.maxScroll) * 1.5;
+    bloomPass.strength = bloomIntensity;
+
+    // Render
+    if (CONFIG.performance.enablePostProcessing) {
+        composer.render();
+    } else {
+        renderer.render(scene, camera);
+    }
+}
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+function setupEventListeners() {
+    // Window resize
+    window.addEventListener('resize', onWindowResize);
+
+    // Scroll events
+    window.addEventListener('wheel', onMouseWheel, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+
+    // Mouse movement
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
+
+    // Touch events
+    window.addEventListener('touchstart', onTouchStart);
+    window.addEventListener('touchend', onTouchEnd);
+
+    // Debug toggle (Press D)
+    window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'd') {
+            document.getElementById('debug-info').classList.toggle('active');
+        }
+    });
+}
+
+function onWindowResize() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    composer.setSize(width, height);
+
+    // Check if mobile
+    state.mobile = width < 768;
+}
+
+function onMouseWheel(event) {
+    const delta = event.deltaY * CONFIG.camera.scrollSensitivity;
+    state.scrollProgress = Math.min(
+        Math.max(state.scrollProgress + delta, 0),
+        state.maxScroll
+    );
+}
+
+function onMouseMove(event) {
+    state.mouseX = event.clientX;
+    state.mouseY = event.clientY;
+}
+
+function onMouseDown(event) {
+    state.isMouseDown = true;
+}
+
+function onMouseUp(event) {
+    state.isMouseDown = false;
+}
+
+function onTouchStart(event) {
+    state.touchActive = true;
+    state.touchStartY = event.touches[0].clientY;
+}
+
+function onTouchEnd(event) {
+    state.touchActive = false;
+}
+
+function onTouchMove(event) {
+    if (!state.touchActive) return;
+
+    const touchY = event.touches[0].clientY;
+    const delta = (state.touchStartY - touchY) * CONFIG.camera.scrollSensitivity * 0.5;
+
+    state.scrollProgress = Math.min(
+        Math.max(state.scrollProgress + delta, 0),
+        state.maxScroll
+    );
+
+    state.touchStartY = touchY;
+}
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+window.addEventListener('load', () => {
+    initScene();
+    animate();
+
+    // Create initial particles system
+    const initialParticles = createParticleSystems();
+    if (initialParticles) {
+        particles.push(initialParticles);
+        // Continuous update loop for particles
+        setInterval(() => {
+            particles.forEach(p => updateParticles(p));
+        }, 1000 / 60);
+    }
+});
+    </script>
+</body>
+</html>
